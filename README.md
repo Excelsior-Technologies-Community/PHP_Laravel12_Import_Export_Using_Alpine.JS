@@ -1,4 +1,12 @@
-# PHP Laravel 12 Import Export Using Alpine.js
+# PHP_Laravel12_Import_Export_Using_Alpine.JS
+
+![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red?logo=laravel)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php)
+![Alpine.js](https://img.shields.io/badge/Alpine.js-Lightweight%20JS-8BC0D0)
+![Maatwebsite Excel](https://img.shields.io/badge/Excel-Maatwebsite-1D6F42)
+![Build](https://img.shields.io/badge/Status-Stable-success)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
 
 
 ## Overview
