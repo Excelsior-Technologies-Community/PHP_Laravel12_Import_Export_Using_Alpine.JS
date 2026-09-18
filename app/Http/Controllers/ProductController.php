@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class ProductController extends Controller
 {
     /**
-     * Display the product management page.
+     * Display product management page.
      */
     public function index()
     {
@@ -29,7 +29,51 @@ class ProductController extends Controller
     }
 
     /**
-     * Create a new product.
+     * Product statistics.
+     */
+    public function statistics()
+    {
+        $total = Product::count();
+
+        $active = Product::where(
+            'status',
+            'active'
+        )->count();
+
+        $inactive = Product::where(
+            'status',
+            'inactive'
+        )->count();
+
+        $totalStock = Product::sum('stock');
+
+        $inventoryValue = Product::selectRaw(
+            'COALESCE(SUM(price * stock), 0) as total'
+        )->value('total');
+
+        $outOfStock = Product::where(
+            'stock',
+            0
+        )->count();
+
+        $lowStock = Product::whereBetween(
+            'stock',
+            [1, 10]
+        )->count();
+
+        return response()->json([
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $inactive,
+            'total_stock' => $totalStock,
+            'inventory_value' => $inventoryValue,
+            'out_of_stock' => $outOfStock,
+            'low_stock' => $lowStock,
+        ]);
+    }
+
+    /**
+     * Create product.
      */
     public function store(Request $request)
     {
@@ -64,10 +108,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Update an existing product.
+     * Update product.
      */
-    public function update(Request $request, Product $product)
-    {
+    public function update(
+        Request $request,
+        Product $product
+    ) {
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -99,7 +145,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Delete a product.
+     * Delete product.
      */
     public function destroy(Product $product)
     {
@@ -112,7 +158,96 @@ class ProductController extends Controller
     }
 
     /**
-     * Import products from Excel.
+     * Duplicate product.
+     */
+    public function duplicate(Product $product)
+    {
+        $newProduct = $product->replicate();
+
+        $newProduct->name =
+            $product->name . ' - Copy';
+
+        $newProduct->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product duplicated successfully.',
+            'product' => $newProduct,
+        ]);
+    }
+
+    /**
+     * Bulk delete products.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'ids.*' => [
+                'integer',
+                'exists:products,id',
+            ],
+        ]);
+
+        $deleted = Product::whereIn(
+            'id',
+            $validated['ids']
+        )->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' =>
+                $deleted . ' product(s) deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Bulk status update.
+     */
+    public function bulkStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'ids.*' => [
+                'integer',
+                'exists:products,id',
+            ],
+
+            'status' => [
+                'required',
+                'in:active,inactive',
+            ],
+        ]);
+
+        $updated = Product::whereIn(
+            'id',
+            $validated['ids']
+        )->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'updated' => $updated,
+            'status' => $validated['status'],
+            'message' =>
+                $updated . ' product(s) updated successfully.',
+        ]);
+    }
+
+    /**
+     * Import products.
      */
     public function import(Request $request)
     {
@@ -130,69 +265,46 @@ class ProductController extends Controller
             ],
         ]);
 
-
         try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Create Import Handler
-            |--------------------------------------------------------------------------
-            */
-
             $import = new ProductsImport(
                 $request->input('import_mode')
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Import Excel
-            |--------------------------------------------------------------------------
-            */
 
             Excel::import(
                 $import,
                 $request->file('file')
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Import Mode Label
-            |--------------------------------------------------------------------------
-            */
-
             $modeLabel =
                 $request->input('import_mode') === 'update_existing'
                     ? 'Update Existing'
                     : 'Add New';
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Response
-            |--------------------------------------------------------------------------
-            */
-
             return response()->json([
                 'success' => true,
 
-                'message' => 'Excel import completed successfully.',
+                'message' =>
+                    'Excel import completed successfully.',
 
-                'mode' => $request->input('import_mode'),
+                'mode' =>
+                    $request->input('import_mode'),
 
-                'mode_label' => $modeLabel,
+                'mode_label' =>
+                    $modeLabel,
 
-                'created' => $import->createdCount,
+                'created' =>
+                    $import->createdCount,
 
-                'updated' => $import->updatedCount,
+                'updated' =>
+                    $import->updatedCount,
 
                 'imported' =>
                     $import->createdCount
                     +
                     $import->updatedCount,
 
-                'skipped' => $import->skippedCount,
+                'skipped' =>
+                    $import->skippedCount,
 
                 'total' =>
                     $import->createdCount
@@ -201,19 +313,20 @@ class ProductController extends Controller
                     +
                     $import->skippedCount,
 
-                'errors' => $import->errors,
+                'errors' =>
+                    $import->errors,
 
-                'activities' => $import->activities,
+                'activities' =>
+                    $import->activities,
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
-
-                'message' => 'Unable to import the Excel file.',
-
-                'error' => $e->getMessage(),
+                'message' =>
+                    'Unable to import the Excel file.',
+                'error' =>
+                    $e->getMessage(),
             ], 422);
         }
     }
@@ -230,10 +343,11 @@ class ProductController extends Controller
     }
 
     /**
-     * Export products using current Alpine.js filters.
+     * Export filtered products.
      */
-    public function exportFiltered(Request $request)
-    {
+    public function exportFiltered(
+        Request $request
+    ) {
         $validated = $request->validate([
             'search' => [
                 'nullable',
@@ -250,13 +364,39 @@ class ProductController extends Controller
                 'nullable',
                 'in:all,in_stock,low_stock,out_of_stock',
             ],
+
+            'min_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+
+            'max_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+
+            'start_date' => [
+                'nullable',
+                'date',
+            ],
+
+            'end_date' => [
+                'nullable',
+                'date',
+            ],
         ]);
 
         return Excel::download(
             new ProductsExport(
                 $validated['search'] ?? null,
                 $validated['status'] ?? 'all',
-                $validated['stock_filter'] ?? 'all'
+                $validated['stock_filter'] ?? 'all',
+                $validated['min_price'] ?? null,
+                $validated['max_price'] ?? null,
+                $validated['start_date'] ?? null,
+                $validated['end_date'] ?? null
             ),
             'filtered-products.xlsx'
         );

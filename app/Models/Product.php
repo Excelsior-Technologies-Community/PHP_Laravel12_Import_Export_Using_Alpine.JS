@@ -12,4 +12,9 @@ class Product extends Model
         'stock',
         'status',
     ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock' => 'integer',
+    ];
 }
