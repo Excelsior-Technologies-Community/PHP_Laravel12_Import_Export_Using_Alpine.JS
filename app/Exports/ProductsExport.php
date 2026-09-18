@@ -13,25 +13,37 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
     protected ?string $search;
     protected ?string $status;
     protected ?string $stockFilter;
+    protected $minPrice;
+    protected $maxPrice;
+    protected ?string $startDate;
+    protected ?string $endDate;
 
     public function __construct(
         ?string $search = null,
         ?string $status = null,
-        ?string $stockFilter = null
+        ?string $stockFilter = null,
+        $minPrice = null,
+        $maxPrice = null,
+        ?string $startDate = null,
+        ?string $endDate = null
     ) {
         $this->search = $search;
         $this->status = $status;
         $this->stockFilter = $stockFilter;
+        $this->minPrice = $minPrice;
+        $this->maxPrice = $maxPrice;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
     }
 
     /**
-     * Build the product query using the selected filters.
+     * Build filtered export query.
      */
     public function query(): Builder
     {
         $query = Product::query();
 
-        // Live search filter
+        // Search
         if (!empty($this->search)) {
             $search = $this->search;
 
@@ -41,14 +53,19 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
             });
         }
 
-        // Status filter
-        if (!empty($this->status) && $this->status !== 'all') {
+        // Status
+        if (
+            !empty($this->status)
+            && $this->status !== 'all'
+        ) {
             $query->where('status', $this->status);
         }
 
-        // Stock filter
-        if (!empty($this->stockFilter) && $this->stockFilter !== 'all') {
-
+        // Stock
+        if (
+            !empty($this->stockFilter)
+            && $this->stockFilter !== 'all'
+        ) {
             if ($this->stockFilter === 'in_stock') {
                 $query->where('stock', '>', 0);
             }
@@ -62,11 +79,53 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
             }
         }
 
+        // Minimum price
+        if (
+            $this->minPrice !== null
+            && $this->minPrice !== ''
+        ) {
+            $query->where(
+                'price',
+                '>=',
+                $this->minPrice
+            );
+        }
+
+        // Maximum price
+        if (
+            $this->maxPrice !== null
+            && $this->maxPrice !== ''
+        ) {
+            $query->where(
+                'price',
+                '<=',
+                $this->maxPrice
+            );
+        }
+
+        // Start date
+        if (!empty($this->startDate)) {
+            $query->whereDate(
+                'created_at',
+                '>=',
+                $this->startDate
+            );
+        }
+
+        // End date
+        if (!empty($this->endDate)) {
+            $query->whereDate(
+                'created_at',
+                '<=',
+                $this->endDate
+            );
+        }
+
         return $query->latest();
     }
 
     /**
-     * Map each product row for Excel.
+     * Map product row.
      */
     public function map($product): array
     {
