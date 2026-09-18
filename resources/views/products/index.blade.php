@@ -5,39 +5,40 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Alpine Product Manager</title>
-
-    <script
-        src="https://unpkg.com/alpinejs"
-        defer>
-    </script>
-
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <meta
         name="csrf-token"
-        content="{{ csrf_token() }}">
+        content="{{ csrf_token() }}"
+    >
+
+    <title>Laravel 12 Alpine Product Manager</title>
+
+    <script
+        src="https://cdn.tailwindcss.com"
+    ></script>
+
+    <script
+        src="https://unpkg.com/alpinejs"
+        defer
+    ></script>
 
 </head>
 
-
-<body class="bg-gray-100 min-h-screen p-6 md:p-10">
-
+<body class="bg-gray-100 min-h-screen p-6">
 
 <div
     class="max-w-7xl mx-auto"
     x-data="productApp()"
-    x-init="fetchProducts()"
+    x-init="init()"
 >
 
+    <!-- HEADER -->
 
-    <!-- =========================================================
-         HEADER
-    ========================================================== -->
-
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
 
         <div>
 
@@ -45,16 +46,15 @@
                 Alpine Product Manager
             </h1>
 
-            <p class="text-gray-500 mt-1">
+            <p class="text-gray-500">
                 Laravel 12 + Alpine.js + Excel Import/Export
             </p>
 
         </div>
 
-
         <button
             @click="openModal()"
-            class="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow"
+            class="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
         >
             + Add Product
         </button>
@@ -62,351 +62,148 @@
     </div>
 
 
-
-    <!-- =========================================================
-         MESSAGE
-    ========================================================== -->
+    <!-- MESSAGE -->
 
     <div
         x-show="message"
         x-transition
-        :class="messageType === 'success'
-            ? 'bg-green-100 text-green-700 border-green-300'
-            : 'bg-red-100 text-red-700 border-red-300'"
+        :class="
+            messageType === 'success'
+                ? 'bg-green-100 text-green-700 border-green-300'
+                : 'bg-red-100 text-red-700 border-red-300'
+        "
         class="mb-6 px-4 py-3 rounded-lg border"
         x-text="message"
-    >
-    </div>
+    ></div>
 
 
+    <!-- =====================================================
+         STATISTICS
+    ====================================================== -->
 
-    <!-- =========================================================
-         IMPORT SUMMARY
-    ========================================================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-    <div
-        x-show="importSummary.show"
-        x-transition
-        class="bg-white rounded-lg shadow p-5 mb-6 border"
-    >
+        <div class="bg-white rounded-xl shadow p-5">
 
-        <div class="flex items-center justify-between mb-4">
+            <p class="text-sm text-gray-500">
+                Total Products
+            </p>
 
-            <div>
-
-                <h2 class="text-xl font-bold text-gray-800">
-                    📊 Import Summary
-                </h2>
-
-                <p
-                    class="text-sm text-gray-500 mt-1"
-                    x-text="'Mode: ' + importSummary.modeLabel"
-                ></p>
-
-            </div>
-
-
-            <button
-                @click="importSummary.show = false"
-                class="text-gray-500 hover:text-gray-800 text-xl"
-            >
-                ×
-            </button>
+            <p
+                class="text-3xl font-bold text-gray-800"
+                x-text="statistics.total"
+            ></p>
 
         </div>
 
 
-        <!-- SUMMARY CARDS -->
+        <div class="bg-white rounded-xl shadow p-5">
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <p class="text-sm text-gray-500">
+                Active Products
+            </p>
 
-
-            <!-- CREATED -->
-
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-
-                <p class="text-sm text-green-600">
-                    Created
-                </p>
-
-                <p
-                    class="text-3xl font-bold text-green-700"
-                    x-text="importSummary.created"
-                ></p>
-
-                <p class="text-sm text-gray-500">
-                    new products
-                </p>
-
-            </div>
-
-
-            <!-- UPDATED -->
-
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-
-                <p class="text-sm text-blue-600">
-                    Updated
-                </p>
-
-                <p
-                    class="text-3xl font-bold text-blue-700"
-                    x-text="importSummary.updated"
-                ></p>
-
-                <p class="text-sm text-gray-500">
-                    existing products
-                </p>
-
-            </div>
-
-
-            <!-- SKIPPED -->
-
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-
-                <p class="text-sm text-red-600">
-                    Skipped
-                </p>
-
-                <p
-                    class="text-3xl font-bold text-red-700"
-                    x-text="importSummary.skipped"
-                ></p>
-
-                <p class="text-sm text-gray-500">
-                    invalid rows
-                </p>
-
-            </div>
-
-
-            <!-- TOTAL -->
-
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-
-                <p class="text-sm text-purple-600">
-                    Total
-                </p>
-
-                <p
-                    class="text-3xl font-bold text-purple-700"
-                    x-text="importSummary.total"
-                ></p>
-
-                <p class="text-sm text-gray-500">
-                    processed rows
-                </p>
-
-            </div>
+            <p
+                class="text-3xl font-bold text-green-600"
+                x-text="statistics.active"
+            ></p>
 
         </div>
 
 
+        <div class="bg-white rounded-xl shadow p-5">
 
-        <!-- =====================================================
-             IMPORT ACTIVITY
-        ====================================================== -->
+            <p class="text-sm text-gray-500">
+                Inactive Products
+            </p>
 
-        <div
-            x-show="importSummary.activities.length > 0"
-            class="mt-6"
-        >
-
-            <h3 class="font-semibold text-gray-800 mb-3">
-                📋 Import Activity
-            </h3>
-
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full text-sm border">
-
-                    <thead class="bg-gray-100">
-
-                        <tr>
-
-                            <th class="border p-2 text-left">
-                                Row
-                            </th>
-
-                            <th class="border p-2 text-left">
-                                Product
-                            </th>
-
-                            <th class="border p-2 text-left">
-                                Action
-                            </th>
-
-                            <th class="border p-2 text-left">
-                                Details
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        <template
-                            x-for="activity in importSummary.activities"
-                            :key="activity.row + '-' + activity.name"
-                        >
-
-                            <tr>
-
-                                <td
-                                    class="border p-2"
-                                    x-text="activity.row"
-                                ></td>
-
-
-                                <td
-                                    class="border p-2 font-medium"
-                                    x-text="activity.name"
-                                ></td>
-
-
-                                <td class="border p-2">
-
-                                    <span
-                                        class="px-2 py-1 rounded text-xs font-semibold"
-                                        :class="{
-                                            'bg-green-100 text-green-700': activity.action === 'Created',
-                                            'bg-blue-100 text-blue-700': activity.action === 'Updated',
-                                            'bg-red-100 text-red-700': activity.action === 'Skipped'
-                                        }"
-                                        x-text="activity.action"
-                                    ></span>
-
-                                </td>
-
-
-                                <td
-                                    class="border p-2 text-gray-600"
-                                    x-text="activity.message"
-                                ></td>
-
-                            </tr>
-
-                        </template>
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            <p
+                class="text-3xl font-bold text-red-600"
+                x-text="statistics.inactive"
+            ></p>
 
         </div>
 
 
+        <div class="bg-white rounded-xl shadow p-5">
 
-        <!-- =====================================================
-             VALIDATION ERRORS
-        ====================================================== -->
+            <p class="text-sm text-gray-500">
+                Inventory Value
+            </p>
 
-        <div
-            x-show="importSummary.errors.length > 0"
-            class="mt-6"
-        >
-
-            <h3 class="font-semibold text-red-600 mb-3">
-                ⚠️ Validation Errors
-            </h3>
-
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full text-sm border">
-
-                    <thead class="bg-red-50">
-
-                        <tr>
-
-                            <th class="border p-2 text-left">
-                                Row
-                            </th>
-
-                            <th class="border p-2 text-left">
-                                Product
-                            </th>
-
-                            <th class="border p-2 text-left">
-                                Error
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        <template
-                            x-for="error in importSummary.errors"
-                            :key="error.row"
-                        >
-
-                            <tr>
-
-                                <td
-                                    class="border p-2"
-                                    x-text="error.row"
-                                ></td>
-
-
-                                <td
-                                    class="border p-2"
-                                    x-text="error.name"
-                                ></td>
-
-
-                                <td class="border p-2 text-red-600">
-
-                                    <template
-                                        x-for="item in error.errors"
-                                        :key="item"
-                                    >
-
-                                        <div x-text="item"></div>
-
-                                    </template>
-
-                                </td>
-
-                            </tr>
-
-                        </template>
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            <p
+                class="text-3xl font-bold text-purple-600"
+                x-text="'₹ ' + Number(statistics.inventory_value).toLocaleString()"
+            ></p>
 
         </div>
 
     </div>
 
 
+    <!-- SECOND STATISTICS ROW -->
 
-    <!-- =========================================================
-         SEARCH AND FILTERS
-    ========================================================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 
-    <div class="bg-white rounded-lg shadow p-5 mb-6">
+        <div class="bg-white rounded-xl shadow p-4">
 
-        <div class="flex items-center justify-between mb-4">
+            <span class="text-gray-500">
+                Total Stock
+            </span>
 
-            <h2 class="text-xl font-bold text-gray-800">
-                🔎 Search & Filter Products
+            <strong
+                class="float-right"
+                x-text="statistics.total_stock"
+            ></strong>
+
+        </div>
+
+
+        <div class="bg-white rounded-xl shadow p-4">
+
+            <span class="text-gray-500">
+                Low Stock
+            </span>
+
+            <strong
+                class="float-right text-yellow-600"
+                x-text="statistics.low_stock"
+            ></strong>
+
+        </div>
+
+
+        <div class="bg-white rounded-xl shadow p-4">
+
+            <span class="text-gray-500">
+                Out of Stock
+            </span>
+
+            <strong
+                class="float-right text-red-600"
+                x-text="statistics.out_of_stock"
+            ></strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH + FILTERS
+    ====================================================== -->
+
+    <div class="bg-white rounded-xl shadow p-5 mb-6">
+
+        <div class="flex justify-between items-center mb-4">
+
+            <h2 class="text-xl font-bold">
+                🔎 Search & Advanced Filters
             </h2>
-
 
             <button
                 @click="clearFilters()"
-                class="text-sm text-blue-600 hover:underline"
+                class="text-blue-600 hover:underline"
             >
                 Clear Filters
             </button>
@@ -414,21 +211,20 @@
         </div>
 
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
             <!-- SEARCH -->
 
             <div>
 
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Search Product
+                <label class="block text-sm font-medium mb-1">
+                    Search
                 </label>
 
                 <input
-                    type="text"
                     x-model="search"
-                    placeholder="Search by name or status..."
+                    type="text"
+                    placeholder="Name or status..."
                     class="border rounded-lg p-2 w-full"
                 >
 
@@ -439,7 +235,7 @@
 
             <div>
 
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium mb-1">
                     Status
                 </label>
 
@@ -469,7 +265,7 @@
 
             <div>
 
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium mb-1">
                     Stock
                 </label>
 
@@ -487,7 +283,7 @@
                     </option>
 
                     <option value="low_stock">
-                        Low Stock (1-10)
+                        Low Stock
                     </option>
 
                     <option value="out_of_stock">
@@ -498,33 +294,143 @@
 
             </div>
 
+
+            <!-- SORT -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-1">
+                    Sort By
+                </label>
+
+                <select
+                    x-model="sortBy"
+                    class="border rounded-lg p-2 w-full"
+                >
+
+                    <option value="created_at">
+                        Newest
+                    </option>
+
+                    <option value="id">
+                        ID
+                    </option>
+
+                    <option value="name">
+                        Name
+                    </option>
+
+                    <option value="price">
+                        Price
+                    </option>
+
+                    <option value="stock">
+                        Stock
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- MIN PRICE -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-1">
+                    Minimum Price
+                </label>
+
+                <input
+                    x-model.number="minPrice"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    class="border rounded-lg p-2 w-full"
+                >
+
+            </div>
+
+
+            <!-- MAX PRICE -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-1">
+                    Maximum Price
+                </label>
+
+                <input
+                    x-model.number="maxPrice"
+                    type="number"
+                    min="0"
+                    placeholder="999999"
+                    class="border rounded-lg p-2 w-full"
+                >
+
+            </div>
+
+
+            <!-- START DATE -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-1">
+                    From Date
+                </label>
+
+                <input
+                    x-model="startDate"
+                    type="date"
+                    class="border rounded-lg p-2 w-full"
+                >
+
+            </div>
+
+
+            <!-- END DATE -->
+
+            <div>
+
+                <label class="block text-sm font-medium mb-1">
+                    To Date
+                </label>
+
+                <input
+                    x-model="endDate"
+                    type="date"
+                    class="border rounded-lg p-2 w-full"
+                >
+
+            </div>
+
         </div>
 
 
-        <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between">
+        <!-- FILTER INFO -->
+
+        <div class="mt-5 flex flex-col md:flex-row md:justify-between gap-3">
 
             <p class="text-sm text-gray-600">
 
                 Showing
 
-                <span
-                    class="font-bold"
+                <strong
                     x-text="filteredProducts.length"
-                ></span>
+                ></strong>
 
                 of
 
-                <span
-                    class="font-bold"
+                <strong
                     x-text="products.length"
-                ></span>
+                ></strong>
 
                 products
 
             </p>
 
 
-            <div class="flex gap-2 mt-3 md:mt-0">
+            <div class="flex gap-2">
 
                 <button
                     @click="exportFiltered()"
@@ -532,7 +438,6 @@
                 >
                     📤 Export Filtered
                 </button>
-
 
                 <button
                     @click="exportProducts()"
@@ -548,18 +453,97 @@
     </div>
 
 
+    <!-- =====================================================
+         BULK ACTION BAR
+    ====================================================== -->
 
-    <!-- =========================================================
+    <div
+        x-show="selectedIds.length > 0"
+        x-transition
+        class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4"
+    >
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+            <div>
+
+                <strong
+                    x-text="selectedIds.length"
+                ></strong>
+
+                product(s) selected.
+
+            </div>
+
+
+            <div class="flex flex-wrap gap-2">
+
+                <button
+                    @click="bulkStatus('active')"
+                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded"
+                >
+                    ✓ Set Active
+                </button>
+
+
+                <button
+                    @click="bulkStatus('inactive')"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded"
+                >
+                    ⏸ Set Inactive
+                </button>
+
+
+                <button
+                    @click="bulkDelete()"
+                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded"
+                >
+                    🗑 Delete Selected
+                </button>
+
+
+                <button
+                    @click="selectedIds = []"
+                    class="border px-3 py-2 rounded"
+                >
+                    Clear Selection
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
          PRODUCT TABLE
-    ========================================================== -->
+    ====================================================== -->
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-xl shadow overflow-hidden">
 
-        <div class="p-4 border-b">
+        <div class="p-4 border-b flex justify-between">
 
-            <h2 class="text-xl font-bold text-gray-800">
+            <h2 class="text-xl font-bold">
                 📋 Product List
             </h2>
+
+
+            <span class="text-sm text-gray-500">
+
+                Page
+
+                <span
+                    x-text="currentPage"
+                ></span>
+
+                /
+
+                <span
+                    x-text="totalPages"
+                ></span>
+
+            </span>
 
         </div>
 
@@ -571,6 +555,19 @@
                 <thead class="bg-gray-200">
 
                     <tr>
+
+                        <!-- SELECT ALL -->
+
+                        <th class="p-3 text-left">
+
+                            <input
+                                type="checkbox"
+                                @change="toggleSelectAll($event)"
+                                :checked="pageProducts.length > 0 && pageProducts.every(p => selectedIds.includes(p.id))"
+                            >
+
+                        </th>
+
 
                         <th class="p-3 text-left">
                             ID
@@ -593,7 +590,11 @@
                         </th>
 
                         <th class="p-3 text-left">
-                            Action
+                            Created
+                        </th>
+
+                        <th class="p-3 text-left">
+                            Actions
                         </th>
 
                     </tr>
@@ -604,11 +605,25 @@
                 <tbody>
 
                     <template
-                        x-for="product in filteredProducts"
+                        x-for="product in pageProducts"
                         :key="product.id"
                     >
 
                         <tr class="border-t hover:bg-gray-50">
+
+                            <!-- CHECKBOX -->
+
+                            <td class="p-3">
+
+                                <input
+                                    type="checkbox"
+                                    :value="product.id"
+                                    :checked="selectedIds.includes(product.id)"
+                                    @change="toggleSelect(product.id)"
+                                >
+
+                            </td>
+
 
                             <td
                                 class="p-3"
@@ -625,7 +640,10 @@
                             <td class="p-3">
 
                                 ₹
-                                <span x-text="product.price"></span>
+
+                                <span
+                                    x-text="Number(product.price).toLocaleString()"
+                                ></span>
 
                             </td>
 
@@ -635,9 +653,9 @@
                                 <span
                                     x-text="product.stock"
                                     :class="{
-                                        'text-red-600 font-bold': product.stock == 0,
-                                        'text-yellow-600 font-bold': product.stock > 0 && product.stock <= 10,
-                                        'text-green-600 font-bold': product.stock > 10
+                                        'text-red-600 font-bold': Number(product.stock) === 0,
+                                        'text-yellow-600 font-bold': Number(product.stock) > 0 && Number(product.stock) <= 10,
+                                        'text-green-600 font-bold': Number(product.stock) > 10
                                     }"
                                 ></span>
 
@@ -648,24 +666,40 @@
 
                                 <span
                                     class="px-2 py-1 rounded text-xs font-semibold"
-                                    :class="product.status === 'active'
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-red-100 text-red-700'"
+                                    :class="
+                                        product.status === 'active'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                    "
                                     x-text="product.status"
                                 ></span>
 
                             </td>
 
 
+                            <td
+                                class="p-3 text-sm text-gray-500"
+                                x-text="formatDate(product.created_at)"
+                            ></td>
+
+
                             <td class="p-3">
 
-                                <div class="flex gap-2">
+                                <div class="flex flex-wrap gap-2">
 
                                     <button
                                         @click="editProduct(product)"
                                         class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
                                     >
                                         Edit
+                                    </button>
+
+
+                                    <button
+                                        @click="duplicateProduct(product.id)"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
+                                    >
+                                        Duplicate
                                     </button>
 
 
@@ -686,13 +720,13 @@
 
 
                     <template
-                        x-if="filteredProducts.length === 0"
+                        x-if="pageProducts.length === 0"
                     >
 
                         <tr>
 
                             <td
-                                colspan="6"
+                                colspan="8"
                                 class="p-8 text-center text-gray-500"
                             >
                                 No products found.
@@ -708,101 +742,102 @@
 
         </div>
 
+
+        <!-- PAGINATION -->
+
+        <div class="p-4 border-t flex flex-wrap justify-center gap-2">
+
+            <template
+                x-for="page in paginationPages"
+                :key="page"
+            >
+
+                <button
+                    @click="goToPage(page)"
+                    class="px-3 py-2 rounded border"
+                    :class="
+                        page === currentPage
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white hover:bg-gray-100'
+                    "
+                    x-text="page"
+                ></button>
+
+            </template>
+
+        </div>
+
     </div>
 
 
+    <!-- =====================================================
+         IMPORT / EXPORT
+    ====================================================== -->
 
-    <!-- =========================================================
-         EXCEL IMPORT / EXPORT
-    ========================================================== -->
+    <div class="bg-white rounded-xl shadow p-5 mt-6">
 
-    <div class="mt-6 bg-white p-5 rounded-lg shadow">
-
-        <h2 class="text-xl font-bold text-gray-800 mb-4">
+        <h2 class="text-xl font-bold mb-5">
             📊 Excel Import / Export
         </h2>
 
 
-        <!-- IMPORT MODE -->
-
         <div class="mb-5">
 
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Excel Import Mode
+            <label class="block text-sm font-medium mb-2">
+                Import Mode
             </label>
 
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-
-                <!-- ADD NEW -->
+            <div class="grid md:grid-cols-2 gap-4">
 
                 <label
-                    class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-                    :class="importMode === 'add_new'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300'"
+                    class="border rounded-lg p-4 cursor-pointer"
+                    :class="
+                        importMode === 'add_new'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300'
+                    "
                 >
 
-                    <div class="flex items-start gap-3">
+                    <input
+                        type="radio"
+                        value="add_new"
+                        x-model="importMode"
+                    >
 
-                        <input
-                            type="radio"
-                            value="add_new"
-                            x-model="importMode"
-                            class="mt-1"
-                        >
+                    <strong class="ml-2">
+                        ➕ Add New
+                    </strong>
 
-
-                        <div>
-
-                            <p class="font-semibold text-gray-800">
-                                ➕ Add New Products
-                            </p>
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                Every valid Excel row is added as a new product.
-                            </p>
-
-                        </div>
-
-                    </div>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Create every valid Excel row.
+                    </p>
 
                 </label>
 
 
-                <!-- UPDATE EXISTING -->
-
                 <label
-                    class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-                    :class="importMode === 'update_existing'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300'"
+                    class="border rounded-lg p-4 cursor-pointer"
+                    :class="
+                        importMode === 'update_existing'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300'
+                    "
                 >
 
-                    <div class="flex items-start gap-3">
+                    <input
+                        type="radio"
+                        value="update_existing"
+                        x-model="importMode"
+                    >
 
-                        <input
-                            type="radio"
-                            value="update_existing"
-                            x-model="importMode"
-                            class="mt-1"
-                        >
+                    <strong class="ml-2">
+                        🔄 Update Existing
+                    </strong>
 
-
-                        <div>
-
-                            <p class="font-semibold text-gray-800">
-                                🔄 Update Existing Products
-                            </p>
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                Match by product name. Existing products are updated; new products are created.
-                            </p>
-
-                        </div>
-
-                    </div>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Match products by name.
+                    </p>
 
                 </label>
 
@@ -810,8 +845,6 @@
 
         </div>
 
-
-        <!-- FILE IMPORT -->
 
         <div class="flex flex-col md:flex-row gap-3">
 
@@ -832,67 +865,110 @@
 
         </div>
 
-
-        <!-- MODE INFORMATION -->
-
-        <div class="mt-4">
-
-            <template x-if="importMode === 'add_new'">
-
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-
-                    <strong>➕ Add New Mode:</strong>
-
-                    Every valid Excel row creates a new product.
-
-                </div>
-
-            </template>
+    </div>
 
 
-            <template x-if="importMode === 'update_existing'">
+    <!-- =====================================================
+         IMPORT SUMMARY
+    ====================================================== -->
 
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-700">
+    <div
+        x-show="importSummary.show"
+        x-transition
+        class="bg-white rounded-xl shadow p-5 mt-6"
+    >
 
-                    <strong>🔄 Update Existing Mode:</strong>
+        <div class="flex justify-between mb-4">
 
-                    Products are matched using their name.
-                    Existing products are updated and missing products are created.
+            <h2 class="text-xl font-bold">
+                📊 Import Summary
+            </h2>
 
-                </div>
-
-            </template>
+            <button
+                @click="importSummary.show = false"
+                class="text-xl"
+            >
+                ×
+            </button>
 
         </div>
 
 
-        <p class="text-sm text-gray-500 mt-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-            Excel headers must be:
+            <div class="bg-green-50 p-4 rounded-lg">
 
-            <strong>
-                name, price, stock, status
-            </strong>
+                <p class="text-sm text-green-600">
+                    Created
+                </p>
 
-        </p>
+                <strong
+                    class="text-3xl text-green-700"
+                    x-text="importSummary.created"
+                ></strong>
+
+            </div>
+
+
+            <div class="bg-blue-50 p-4 rounded-lg">
+
+                <p class="text-sm text-blue-600">
+                    Updated
+                </p>
+
+                <strong
+                    class="text-3xl text-blue-700"
+                    x-text="importSummary.updated"
+                ></strong>
+
+            </div>
+
+
+            <div class="bg-red-50 p-4 rounded-lg">
+
+                <p class="text-sm text-red-600">
+                    Skipped
+                </p>
+
+                <strong
+                    class="text-3xl text-red-700"
+                    x-text="importSummary.skipped"
+                ></strong>
+
+            </div>
+
+
+            <div class="bg-purple-50 p-4 rounded-lg">
+
+                <p class="text-sm text-purple-600">
+                    Total
+                </p>
+
+                <strong
+                    class="text-3xl text-purple-700"
+                    x-text="importSummary.total"
+                ></strong>
+
+            </div>
+
+        </div>
 
     </div>
 
 
-
-    <!-- =========================================================
-         PRODUCT MODAL
-    ========================================================== -->
+    <!-- =====================================================
+         MODAL
+    ====================================================== -->
 
     <div
         x-show="showModal"
         x-transition
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
     >
 
         <div
             @click.outside="showModal = false"
-            class="bg-white p-6 rounded-xl w-full max-w-md shadow-xl"
+            class="bg-white p-6 rounded-xl w-full max-w-md"
         >
 
             <h2
@@ -907,7 +983,6 @@
 
             <input
                 x-model="form.name"
-                placeholder="Product name"
                 class="border p-2 w-full mb-3 rounded"
             >
 
@@ -921,7 +996,6 @@
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Price"
                 class="border p-2 w-full mb-3 rounded"
             >
 
@@ -934,7 +1008,6 @@
                 x-model="form.stock"
                 type="number"
                 min="0"
-                placeholder="Stock"
                 class="border p-2 w-full mb-3 rounded"
             >
 
@@ -968,7 +1041,6 @@
                     Cancel
                 </button>
 
-
                 <button
                     @click="saveProduct()"
                     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
@@ -985,29 +1057,13 @@
 </div>
 
 
-
 <script>
 
 function productApp() {
 
     return {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Products
-        |--------------------------------------------------------------------------
-        */
-
         products: [],
-
-        showModal: false,
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search / Filters
-        |--------------------------------------------------------------------------
-        */
 
         search: '',
 
@@ -1015,40 +1071,53 @@ function productApp() {
 
         stockFilter: 'all',
 
+        minPrice: '',
 
-        /*
-        |--------------------------------------------------------------------------
-        | Import Mode
-        |--------------------------------------------------------------------------
-        */
+        maxPrice: '',
+
+        startDate: '',
+
+        endDate: '',
+
+        sortBy: 'created_at',
+
+        sortDirection: 'desc',
+
+        currentPage: 1,
+
+        perPage: 5,
+
+        selectedIds: [],
+
+        showModal: false,
 
         importMode: 'add_new',
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Messages
-        |--------------------------------------------------------------------------
-        */
 
         message: '',
 
         messageType: 'success',
 
+        statistics: {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Import Summary
-        |--------------------------------------------------------------------------
-        */
+            total: 0,
+
+            active: 0,
+
+            inactive: 0,
+
+            total_stock: 0,
+
+            inventory_value: 0,
+
+            out_of_stock: 0,
+
+            low_stock: 0
+
+        },
 
         importSummary: {
 
             show: false,
-
-            mode: '',
-
-            modeLabel: '',
 
             created: 0,
 
@@ -1066,13 +1135,6 @@ function productApp() {
 
         },
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Product Form
-        |--------------------------------------------------------------------------
-        */
-
         form: {
 
             id: null,
@@ -1088,118 +1150,281 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Filtered Products
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           INITIALIZE
+        ========================================= */
+
+        init() {
+
+            this.fetchProducts();
+
+            this.fetchStatistics();
+
+        },
+
+
+        /* =========================================
+           FILTERED PRODUCTS
+        ========================================= */
 
         get filteredProducts() {
 
-            return this.products.filter(product => {
+            let result = [...this.products];
 
-                const searchText =
-                    this.search
-                        .toLowerCase()
-                        .trim();
-
-
-                const matchesSearch =
-                    searchText === ''
-                    ||
-                    product.name
-                        .toLowerCase()
-                        .includes(searchText)
-                    ||
-                    product.status
-                        .toLowerCase()
-                        .includes(searchText);
+            const searchText =
+                this.search
+                    .toLowerCase()
+                    .trim();
 
 
-                const matchesStatus =
-                    this.statusFilter === 'all'
-                    ||
-                    product.status === this.statusFilter;
+            if (searchText !== '') {
+
+                result = result.filter(product => {
+
+                    return (
+                        String(product.name)
+                            .toLowerCase()
+                            .includes(searchText)
+                        ||
+                        String(product.status)
+                            .toLowerCase()
+                            .includes(searchText)
+                    );
+
+                });
+
+            }
 
 
-                let matchesStock = true;
+            if (this.statusFilter !== 'all') {
 
-
-                if (
-                    this.stockFilter === 'in_stock'
-                ) {
-
-                    matchesStock =
-                        Number(product.stock) > 0;
-
-                }
-
-
-                if (
-                    this.stockFilter === 'low_stock'
-                ) {
-
-                    matchesStock =
-                        Number(product.stock) > 0
-                        &&
-                        Number(product.stock) <= 10;
-
-                }
-
-
-                if (
-                    this.stockFilter === 'out_of_stock'
-                ) {
-
-                    matchesStock =
-                        Number(product.stock) === 0;
-
-                }
-
-
-                return (
-                    matchesSearch
-                    &&
-                    matchesStatus
-                    &&
-                    matchesStock
+                result = result.filter(
+                    product =>
+                        product.status === this.statusFilter
                 );
+
+            }
+
+
+            if (this.stockFilter !== 'all') {
+
+                if (this.stockFilter === 'in_stock') {
+
+                    result = result.filter(
+                        product =>
+                            Number(product.stock) > 0
+                    );
+
+                }
+
+                if (this.stockFilter === 'low_stock') {
+
+                    result = result.filter(
+                        product =>
+                            Number(product.stock) > 0
+                            &&
+                            Number(product.stock) <= 10
+                    );
+
+                }
+
+                if (this.stockFilter === 'out_of_stock') {
+
+                    result = result.filter(
+                        product =>
+                            Number(product.stock) === 0
+                    );
+
+                }
+
+            }
+
+
+            if (this.minPrice !== '') {
+
+                result = result.filter(
+                    product =>
+                        Number(product.price)
+                        >=
+                        Number(this.minPrice)
+                );
+
+            }
+
+
+            if (this.maxPrice !== '') {
+
+                result = result.filter(
+                    product =>
+                        Number(product.price)
+                        <=
+                        Number(this.maxPrice)
+                );
+
+            }
+
+
+            if (this.startDate !== '') {
+
+                result = result.filter(
+                    product =>
+                        String(product.created_at)
+                            .substring(0, 10)
+                        >=
+                        this.startDate
+                );
+
+            }
+
+
+            if (this.endDate !== '') {
+
+                result = result.filter(
+                    product =>
+                        String(product.created_at)
+                            .substring(0, 10)
+                        <=
+                        this.endDate
+                );
+
+            }
+
+
+            result.sort((a, b) => {
+
+                let valueA =
+                    a[this.sortBy];
+
+                let valueB =
+                    b[this.sortBy];
+
+
+                if (this.sortBy === 'name') {
+
+                    valueA =
+                        String(valueA).toLowerCase();
+
+                    valueB =
+                        String(valueB).toLowerCase();
+
+                }
+
+
+                if (
+                    this.sortBy === 'price'
+                    ||
+                    this.sortBy === 'stock'
+                    ||
+                    this.sortBy === 'id'
+                ) {
+
+                    valueA = Number(valueA);
+
+                    valueB = Number(valueB);
+
+                }
+
+
+                if (valueA < valueB) {
+
+                    return this.sortDirection === 'asc'
+                        ? -1
+                        : 1;
+
+                }
+
+
+                if (valueA > valueB) {
+
+                    return this.sortDirection === 'asc'
+                        ? 1
+                        : -1;
+
+                }
+
+
+                return 0;
 
             });
 
-        },
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Show Message
-        |--------------------------------------------------------------------------
-        */
-
-        showMessage(
-            text,
-            type = 'success'
-        ) {
-
-            this.message = text;
-
-            this.messageType = type;
-
-
-            setTimeout(() => {
-
-                this.message = '';
-
-            }, 4000);
+            return result;
 
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Fetch Products
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           PAGINATION
+        ========================================= */
+
+        get totalPages() {
+
+            return Math.max(
+                1,
+                Math.ceil(
+                    this.filteredProducts.length
+                    /
+                    this.perPage
+                )
+            );
+
+        },
+
+
+        get pageProducts() {
+
+            if (
+                this.currentPage
+                >
+                this.totalPages
+            ) {
+
+                this.currentPage =
+                    this.totalPages;
+
+            }
+
+
+            const start =
+                (
+                    this.currentPage - 1
+                )
+                *
+                this.perPage;
+
+
+            return this.filteredProducts.slice(
+                start,
+                start + this.perPage
+            );
+
+        },
+
+
+        get paginationPages() {
+
+            return Array.from(
+                {
+                    length: this.totalPages
+                },
+                (_, index) => index + 1
+            );
+
+        },
+
+
+        goToPage(page) {
+
+            this.currentPage = page;
+
+            this.selectedIds = [];
+
+        },
+
+
+        /* =========================================
+           FETCH PRODUCTS
+        ========================================= */
 
         fetchProducts() {
 
@@ -1239,11 +1464,36 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Clear Filters
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           FETCH STATISTICS
+        ========================================= */
+
+        fetchStatistics() {
+
+            fetch('/api/products/statistics')
+
+                .then(response =>
+                    response.json()
+                )
+
+                .then(data => {
+
+                    this.statistics = data;
+
+                })
+
+                .catch(error => {
+
+                    console.error(error);
+
+                });
+
+        },
+
+
+        /* =========================================
+           FILTER RESET
+        ========================================= */
 
         clearFilters() {
 
@@ -1253,14 +1503,418 @@ function productApp() {
 
             this.stockFilter = 'all';
 
+            this.minPrice = '';
+
+            this.maxPrice = '';
+
+            this.startDate = '';
+
+            this.endDate = '';
+
+            this.sortBy = 'created_at';
+
+            this.sortDirection = 'desc';
+
+            this.currentPage = 1;
+
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Open Modal
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           SELECT PRODUCT
+        ========================================= */
+
+        toggleSelect(id) {
+
+            if (
+                this.selectedIds.includes(id)
+            ) {
+
+                this.selectedIds =
+                    this.selectedIds.filter(
+                        selectedId =>
+                            selectedId !== id
+                    );
+
+            } else {
+
+                this.selectedIds.push(id);
+
+            }
+
+        },
+
+
+        /* =========================================
+           SELECT ALL CURRENT PAGE
+        ========================================= */
+
+        toggleSelectAll(event) {
+
+            if (event.target.checked) {
+
+                this.pageProducts.forEach(
+                    product => {
+
+                        if (
+                            !this.selectedIds
+                                .includes(product.id)
+                        ) {
+
+                            this.selectedIds.push(
+                                product.id
+                            );
+
+                        }
+
+                    }
+                );
+
+            } else {
+
+                const currentPageIds =
+                    this.pageProducts.map(
+                        product =>
+                            product.id
+                    );
+
+                this.selectedIds =
+                    this.selectedIds.filter(
+                        id =>
+                            !currentPageIds.includes(id)
+                    );
+
+            }
+
+        },
+
+
+        /* =========================================
+           BULK DELETE
+        ========================================= */
+
+        bulkDelete() {
+
+            if (
+                this.selectedIds.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                !confirm(
+                    `Delete ${this.selectedIds.length} selected product(s)?`
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            fetch(
+                '/api/products/bulk-delete',
+                {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type':
+                            'application/json',
+
+                        'Accept':
+                            'application/json',
+
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector(
+                                    'meta[name="csrf-token"]'
+                                )
+                                .content
+
+                    },
+
+                    body: JSON.stringify({
+
+                        ids:
+                            this.selectedIds
+
+                    })
+
+                }
+            )
+
+            .then(async response => {
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message
+                        ||
+                        'Bulk delete failed.'
+                    );
+
+                }
+
+                return data;
+
+            })
+
+            .then(data => {
+
+                this.selectedIds = [];
+
+                this.fetchProducts();
+
+                this.fetchStatistics();
+
+                this.showMessage(
+                    data.message
+                );
+
+            })
+
+            .catch(error => {
+
+                this.showMessage(
+                    error.message,
+                    'error'
+                );
+
+            });
+
+        },
+
+
+        /* =========================================
+           BULK STATUS
+        ========================================= */
+
+        bulkStatus(status) {
+
+            if (
+                this.selectedIds.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            const label =
+                status === 'active'
+                    ? 'activate'
+                    : 'deactivate';
+
+
+            if (
+                !confirm(
+                    `${label} ${this.selectedIds.length} selected product(s)?`
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            fetch(
+                '/api/products/bulk-status',
+                {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type':
+                            'application/json',
+
+                        'Accept':
+                            'application/json',
+
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector(
+                                    'meta[name="csrf-token"]'
+                                )
+                                .content
+
+                    },
+
+                    body: JSON.stringify({
+
+                        ids:
+                            this.selectedIds,
+
+                        status:
+                            status
+
+                    })
+
+                }
+            )
+
+            .then(async response => {
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message
+                        ||
+                        'Status update failed.'
+                    );
+
+                }
+
+                return data;
+
+            })
+
+            .then(data => {
+
+                this.selectedIds = [];
+
+                this.fetchProducts();
+
+                this.fetchStatistics();
+
+                this.showMessage(
+                    data.message
+                );
+
+            })
+
+            .catch(error => {
+
+                this.showMessage(
+                    error.message,
+                    'error'
+                );
+
+            });
+
+        },
+
+
+        /* =========================================
+           DUPLICATE PRODUCT
+        ========================================= */
+
+        duplicateProduct(id) {
+
+            if (
+                !confirm(
+                    'Create a copy of this product?'
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            fetch(
+                `/api/products/${id}/duplicate`,
+                {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Accept':
+                            'application/json',
+
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector(
+                                    'meta[name="csrf-token"]'
+                                )
+                                .content
+
+                    }
+
+                }
+            )
+
+            .then(async response => {
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message
+                        ||
+                        'Duplicate failed.'
+                    );
+
+                }
+
+                return data;
+
+            })
+
+            .then(data => {
+
+                this.fetchProducts();
+
+                this.fetchStatistics();
+
+                this.showMessage(
+                    data.message
+                );
+
+            })
+
+            .catch(error => {
+
+                this.showMessage(
+                    error.message,
+                    'error'
+                );
+
+            });
+
+        },
+
+
+        /* =========================================
+           MESSAGE
+        ========================================= */
+
+        showMessage(
+            text,
+            type = 'success'
+        ) {
+
+            this.message = text;
+
+            this.messageType = type;
+
+
+            setTimeout(() => {
+
+                this.message = '';
+
+            }, 4000);
+
+        },
+
+
+        /* =========================================
+           MODAL
+        ========================================= */
 
         openModal() {
 
@@ -1283,25 +1937,24 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Edit Product
-        |--------------------------------------------------------------------------
-        */
-
         editProduct(product) {
 
             this.form = {
 
-                id: product.id,
+                id:
+                    product.id,
 
-                name: product.name,
+                name:
+                    product.name,
 
-                price: product.price,
+                price:
+                    product.price,
 
-                stock: product.stock,
+                stock:
+                    product.stock,
 
-                status: product.status
+                status:
+                    product.status
 
             };
 
@@ -1310,15 +1963,15 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Save Product
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           SAVE PRODUCT
+        ========================================= */
 
         saveProduct() {
 
-            if (!this.form.name.trim()) {
+            if (
+                !this.form.name.trim()
+            ) {
 
                 this.showMessage(
                     'Product name is required.',
@@ -1362,70 +2015,68 @@ function productApp() {
             }
 
 
-            const productId =
+            const id =
                 this.form.id;
 
 
             const url =
-                '/api/products'
-                +
-                (
-                    productId
-                        ? '/' + productId
-                        : ''
-                );
+                id
+                    ? `/api/products/${id}`
+                    : '/api/products';
 
 
             const method =
-                productId
+                id
                     ? 'PUT'
                     : 'POST';
 
 
-            fetch(url, {
+            fetch(
+                url,
+                {
 
-                method: method,
+                    method: method,
 
-                headers: {
+                    headers: {
 
-                    'Content-Type':
-                        'application/json',
+                        'Content-Type':
+                            'application/json',
 
-                    'Accept':
-                        'application/json',
+                        'Accept':
+                            'application/json',
 
-                    'X-CSRF-TOKEN':
-                        document
-                            .querySelector(
-                                'meta[name="csrf-token"]'
-                            )
-                            .content
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector(
+                                    'meta[name="csrf-token"]'
+                                )
+                                .content
 
-                },
+                    },
 
-                body: JSON.stringify({
+                    body: JSON.stringify({
 
-                    name:
-                        this.form.name,
+                        name:
+                            this.form.name,
 
-                    price:
-                        this.form.price,
+                        price:
+                            this.form.price,
 
-                    stock:
-                        this.form.stock,
+                        stock:
+                            this.form.stock,
 
-                    status:
-                        this.form.status
+                        status:
+                            this.form.status
 
-                })
+                    })
 
-            })
+                }
+            )
 
             .then(async response => {
 
                 const data =
                     await response.json();
-
 
                 if (!response.ok) {
 
@@ -1437,36 +2088,30 @@ function productApp() {
 
                 }
 
-
                 return data;
 
             })
 
             .then(() => {
 
-                this.fetchProducts();
-
                 this.showModal = false;
 
+                this.fetchProducts();
+
+                this.fetchStatistics();
 
                 this.showMessage(
-
-                    productId
+                    id
                         ? 'Product updated successfully!'
                         : 'Product added successfully!'
-
                 );
 
             })
 
             .catch(error => {
 
-                console.error(error);
-
                 this.showMessage(
-                    error.message
-                    ||
-                    'Something went wrong!',
+                    error.message,
                     'error'
                 );
 
@@ -1475,11 +2120,9 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Product
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           DELETE
+        ========================================= */
 
         deleteProduct(id) {
 
@@ -1495,7 +2138,7 @@ function productApp() {
 
 
             fetch(
-                '/api/products/' + id,
+                `/api/products/${id}`,
                 {
 
                     method: 'DELETE',
@@ -1517,33 +2160,25 @@ function productApp() {
                 }
             )
 
-            .then(response => {
+            .then(response =>
+                response.json()
+            )
 
-                if (!response.ok) {
-
-                    throw new Error(
-                        'Unable to delete product.'
-                    );
-
-                }
-
-                return response.json();
-
-            })
-
-            .then(() => {
+            .then(data => {
 
                 this.fetchProducts();
 
+                this.fetchStatistics();
+
                 this.showMessage(
+                    data.message
+                    ||
                     'Product deleted successfully!'
                 );
 
             })
 
             .catch(error => {
-
-                console.error(error);
 
                 this.showMessage(
                     error.message,
@@ -1555,11 +2190,9 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Excel Import
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           IMPORT
+        ========================================= */
 
         importFile(event) {
 
@@ -1574,13 +2207,6 @@ function productApp() {
             }
 
 
-            const allowedExtensions = [
-                'xlsx',
-                'xls',
-                'csv'
-            ];
-
-
             const extension =
                 file.name
                     .split('.')
@@ -1589,8 +2215,11 @@ function productApp() {
 
 
             if (
-                !allowedExtensions
-                    .includes(extension)
+                ![
+                    'xlsx',
+                    'xls',
+                    'csv'
+                ].includes(extension)
             ) {
 
                 this.showMessage(
@@ -1622,9 +2251,7 @@ function productApp() {
 
 
             this.showMessage(
-                this.importMode === 'update_existing'
-                    ? 'Checking existing products and importing Excel data...'
-                    : 'Importing new products from Excel...'
+                'Importing Excel file...'
             );
 
 
@@ -1648,7 +2275,8 @@ function productApp() {
 
                     },
 
-                    body: formData
+                    body:
+                        formData
 
                 }
             )
@@ -1657,7 +2285,6 @@ function productApp() {
 
                 const data =
                     await response.json();
-
 
                 if (!response.ok) {
 
@@ -1669,99 +2296,49 @@ function productApp() {
 
                 }
 
-
                 return data;
 
             })
 
             .then(data => {
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | Update Summary
-                |--------------------------------------------------------------------------
-                */
-
                 this.importSummary = {
 
                     show: true,
 
-                    mode:
-                        data.mode
-                        ||
-                        this.importMode,
-
-                    modeLabel:
-                        data.mode_label
-                        ||
-                        '',
-
                     created:
-                        data.created
-                        ||
-                        0,
+                        data.created || 0,
 
                     updated:
-                        data.updated
-                        ||
-                        0,
+                        data.updated || 0,
 
                     imported:
-                        data.imported
-                        ||
-                        0,
+                        data.imported || 0,
 
                     skipped:
-                        data.skipped
-                        ||
-                        0,
+                        data.skipped || 0,
 
                     total:
-                        data.total
-                        ||
-                        0,
+                        data.total || 0,
 
                     errors:
-                        data.errors
-                        ||
-                        [],
+                        data.errors || [],
 
                     activities:
-                        data.activities
-                        ||
-                        []
+                        data.activities || []
 
                 };
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Refresh Product List
-                |--------------------------------------------------------------------------
-                */
-
                 this.fetchProducts();
 
+                this.fetchStatistics();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Success Message
-                |--------------------------------------------------------------------------
-                */
 
                 this.showMessage(
-
                     `Import completed: ${data.created || 0} created, ${data.updated || 0} updated, ${data.skipped || 0} skipped.`
-
                 );
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | Reset File Input
-                |--------------------------------------------------------------------------
-                */
 
                 event.target.value = '';
 
@@ -1769,12 +2346,8 @@ function productApp() {
 
             .catch(error => {
 
-                console.error(error);
-
                 this.showMessage(
-                    error.message
-                    ||
-                    'Excel import failed.',
+                    error.message,
                     'error'
                 );
 
@@ -1785,34 +2358,21 @@ function productApp() {
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Export All
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           EXPORT ALL
+        ========================================= */
 
         exportProducts() {
 
-            this.showMessage(
-                'Export started! File downloading...'
-            );
-
-
-            setTimeout(() => {
-
-                window.location.href =
-                    '/api/products/export';
-
-            }, 500);
+            window.location.href =
+                '/api/products/export';
 
         },
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Export Filtered
-        |--------------------------------------------------------------------------
-        */
+        /* =========================================
+           EXPORT FILTERED
+        ========================================= */
 
         exportFiltered() {
 
@@ -1821,7 +2381,7 @@ function productApp() {
             ) {
 
                 this.showMessage(
-                    'There are no products to export with the current filters.',
+                    'No products available for export.',
                     'error'
                 );
 
@@ -1840,33 +2400,54 @@ function productApp() {
                         this.statusFilter,
 
                     stock_filter:
-                        this.stockFilter
+                        this.stockFilter,
+
+                    min_price:
+                        this.minPrice,
+
+                    max_price:
+                        this.maxPrice,
+
+                    start_date:
+                        this.startDate,
+
+                    end_date:
+                        this.endDate
 
                 });
 
 
-            this.showMessage(
-                'Filtered export started! File downloading...'
-            );
+            window.location.href =
+                '/api/products/export-filtered?'
+                +
+                params.toString();
+
+        },
 
 
-            setTimeout(() => {
+        /* =========================================
+           FORMAT DATE
+        ========================================= */
 
-                window.location.href =
-                    '/api/products/export-filtered?'
-                    +
-                    params.toString();
+        formatDate(date) {
 
-            }, 500);
+            if (!date) {
+
+                return '-';
+
+            }
+
+
+            return new Date(date)
+                .toLocaleDateString();
 
         }
 
-    }
+    };
 
 }
 
 </script>
-
 
 </body>
 
