@@ -71,6 +71,11 @@ Route::post(
     [ProductController::class, 'import']
 );
 
+Route::post(
+    '/api/products/import-direct',
+    [ProductController::class, 'importDirect']
+);
+
 Route::get(
     '/api/products/export',
     [ProductController::class, 'export']
@@ -79,4 +84,9 @@ Route::get(
 Route::get(
     '/api/products/export-filtered',
     [ProductController::class, 'exportFiltered']
+);
+
+Route::get(
+    '/api/products/export-custom',
+    [ProductController::class, 'exportCustom']
 );

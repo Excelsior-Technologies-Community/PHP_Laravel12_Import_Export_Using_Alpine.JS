@@ -5,10 +5,14 @@ namespace App\Exports;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ProductsExport implements FromQuery, WithHeadings, WithMapping
+class ProductsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     protected ?string $search;
     protected ?string $status;
@@ -17,6 +21,7 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
     protected $maxPrice;
     protected ?string $startDate;
     protected ?string $endDate;
+    protected array $columns;
 
     public function __construct(
         ?string $search = null,
@@ -25,7 +30,8 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
         $minPrice = null,
         $maxPrice = null,
         ?string $startDate = null,
-        ?string $endDate = null
+        ?string $endDate = null,
+        array $columns = ['id', 'name', 'price', 'stock', 'status', 'created_at']
     ) {
         $this->search = $search;
         $this->status = $status;
@@ -34,6 +40,7 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
         $this->maxPrice = $maxPrice;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->columns = !empty($columns) ? $columns : ['id', 'name', 'price', 'stock', 'status', 'created_at'];
     }
 
     /**
@@ -46,7 +53,6 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
         // Search
         if (!empty($this->search)) {
             $search = $this->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
                     ->orWhere('status', 'like', '%' . $search . '%');
@@ -54,103 +60,122 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping
         }
 
         // Status
-        if (
-            !empty($this->status)
-            && $this->status !== 'all'
-        ) {
+        if (!empty($this->status) && $this->status !== 'all') {
             $query->where('status', $this->status);
         }
 
-        // Stock
-        if (
-            !empty($this->stockFilter)
-            && $this->stockFilter !== 'all'
-        ) {
+        // Stock filter
+        if (!empty($this->stockFilter) && $this->stockFilter !== 'all') {
             if ($this->stockFilter === 'in_stock') {
                 $query->where('stock', '>', 0);
-            }
-
-            if ($this->stockFilter === 'low_stock') {
+            } elseif ($this->stockFilter === 'low_stock') {
                 $query->whereBetween('stock', [1, 10]);
-            }
-
-            if ($this->stockFilter === 'out_of_stock') {
+            } elseif ($this->stockFilter === 'out_of_stock') {
                 $query->where('stock', 0);
             }
         }
 
-        // Minimum price
-        if (
-            $this->minPrice !== null
-            && $this->minPrice !== ''
-        ) {
-            $query->where(
-                'price',
-                '>=',
-                $this->minPrice
-            );
+        // Price range
+        if ($this->minPrice !== null && $this->minPrice !== '') {
+            $query->where('price', '>=', $this->minPrice);
         }
 
-        // Maximum price
-        if (
-            $this->maxPrice !== null
-            && $this->maxPrice !== ''
-        ) {
-            $query->where(
-                'price',
-                '<=',
-                $this->maxPrice
-            );
+        if ($this->maxPrice !== null && $this->maxPrice !== '') {
+            $query->where('price', '<=', $this->maxPrice);
         }
 
-        // Start date
+        // Date range
         if (!empty($this->startDate)) {
-            $query->whereDate(
-                'created_at',
-                '>=',
-                $this->startDate
-            );
+            $query->whereDate('created_at', '>=', $this->startDate);
         }
 
-        // End date
         if (!empty($this->endDate)) {
-            $query->whereDate(
-                'created_at',
-                '<=',
-                $this->endDate
-            );
+            $query->whereDate('created_at', '<=', $this->endDate);
         }
 
         return $query->latest();
     }
 
     /**
-     * Map product row.
+     * Map product row dynamically based on selected columns.
      */
     public function map($product): array
     {
-        return [
-            $product->id,
-            $product->name,
-            $product->price,
-            $product->stock,
-            $product->status,
-            $product->created_at?->format('Y-m-d H:i:s'),
-        ];
+        $row = [];
+
+        foreach ($this->columns as $col) {
+            switch ($col) {
+                case 'id':
+                    $row[] = $product->id;
+                    break;
+                case 'name':
+                    $row[] = $product->name;
+                    break;
+                case 'price':
+                    $row[] = (float) $product->price;
+                    break;
+                case 'stock':
+                    $row[] = (int) $product->stock;
+                    break;
+                case 'status':
+                    $row[] = ucfirst($product->status);
+                    break;
+                case 'inventory_value':
+                    $row[] = round((float) $product->price * (int) $product->stock, 2);
+                    break;
+                case 'created_at':
+                    $row[] = $product->created_at?->format('Y-m-d H:i:s');
+                    break;
+                case 'updated_at':
+                    $row[] = $product->updated_at?->format('Y-m-d H:i:s');
+                    break;
+            }
+        }
+
+        return $row;
     }
 
     /**
-     * Excel headings.
+     * Dynamic Excel headings.
      */
     public function headings(): array
     {
+        $headingMap = [
+            'id' => 'Product ID',
+            'name' => 'Product Name',
+            'price' => 'Unit Price',
+            'stock' => 'Stock Qty',
+            'status' => 'Status',
+            'inventory_value' => 'Total Inventory Value',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+        ];
+
+        $headings = [];
+        foreach ($this->columns as $col) {
+            $headings[] = $headingMap[$col] ?? ucfirst(str_replace('_', ' ', $col));
+        }
+
+        return $headings;
+    }
+
+    /**
+     * Custom Excel Header Styling
+     */
+    public function styles(Worksheet $sheet): array
+    {
         return [
-            'ID',
-            'Name',
-            'Price',
-            'Stock',
-            'Status',
-            'Created At',
+            1 => [
+                'font' => [
+                    'bold' => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                    'size' => 11,
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '3730A3'], // Indigo Header
+                ],
+            ],
         ];
     }
 }
